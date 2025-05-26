@@ -1,0 +1,23 @@
+{
+  "name": "x32-switcher",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev\"",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "install:backend": "cd backend && npm install",
+    "build:native": "cd backend && npm_config_python=python3 pnpm rebuild abletonlink"
+  },
+  "dependencies": {
+    "lit": "^3.3.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "concurrently": "^8.2.2"
+  }
+}
