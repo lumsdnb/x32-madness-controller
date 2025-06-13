@@ -17,9 +17,9 @@ export class X32Controller extends LitElement {
     activeGroup: 0,
     isAutoSwitching: false,
     switchInterval: 4,
-    linkStatus: { 
-      enabled: false, 
-      tempo: 120, 
+    linkStatus: {
+      enabled: false,
+      tempo: 120,
       beats: 0,
       currentBeat: 0,
       beatsPerBar: 4,
@@ -33,6 +33,8 @@ export class X32Controller extends LitElement {
   @state()
   private x32Config: X32Config = { host: '192.168.1.100', port: 10023 };
 
+  @state()
+  private arduinoConfig
   @state()
   private showSettings = false;
 
@@ -80,13 +82,16 @@ export class X32Controller extends LitElement {
             <div class="settings-content">
               <h3>X32 Configuration</h3>
               <x32-config .config=${this.x32Config} compact></x32-config>
+              <h3>Arduino</h3>
+              <x32-config .config=${this.x32Config} compact></x32-config>
+
             </div>
           </section>
         ` : ''}
 
         <!-- Enhanced Link Indicator (status only, no beat section) -->
         <section class="link-section">
-          <link-indicator 
+          <link-indicator
             .linkStatus=${this.state.linkStatus}
             .switchInterval=${this.state.switchInterval}
             hideBeatSection>
@@ -130,7 +135,7 @@ export class X32Controller extends LitElement {
       display: block;
       font-family: 'Courier New', 'Lucida Console', monospace;
       background: var(--color-bg-primary);
-      background-image: 
+      background-image:
         radial-gradient(circle at 25% 25%, #00ffff10 0%, transparent 50%),
         radial-gradient(circle at 75% 75%, #ff00ff10 0%, transparent 50%),
         linear-gradient(45deg, transparent 40%, #00ffff05 50%, transparent 60%);
@@ -138,7 +143,7 @@ export class X32Controller extends LitElement {
       min-height: 100vh;
       position: relative;
     }
-    
+
     :host::before {
       content: '';
       position: fixed;
@@ -146,7 +151,7 @@ export class X32Controller extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background: 
+      background:
         repeating-linear-gradient(
           0deg,
           transparent,
@@ -214,7 +219,7 @@ export class X32Controller extends LitElement {
     .btn-secondary:hover {
       background: var(--color-secondary);
     }
-    
+
     header::before {
       content: '';
       position: absolute;
@@ -237,7 +242,7 @@ export class X32Controller extends LitElement {
       text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary)40;
       animation: neon-pulse 2s ease-in-out infinite alternate;
     }
-    
+
     @keyframes neon-pulse {
       from {
         text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary)40;
@@ -356,4 +361,4 @@ declare global {
   interface HTMLElementTagNameMap {
     'x32-controller': X32Controller;
   }
-} 
+}

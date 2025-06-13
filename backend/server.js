@@ -128,6 +128,34 @@ app.post('/api/test/next-group', (req, res) => {
   res.json({ success: true, activeGroup, nextGroup });
 });
 
+// X32 status check endpoint
+app.get('/api/x32/status', async (req, res) => {
+  let responded = false;
+  const timeout = setTimeout(() => {
+    if (!responded) {
+      oscClient.removeListener('message', onMessage);
+      res.json({ found: false });
+    }
+  }, 1000);
+
+  function onMessage(msg) {
+    // Accept any message as a sign the X32 is alive
+    responded = true;
+    clearTimeout(timeout);
+    oscClient.removeListener('message', onMessage);
+    res.json({ found: true });
+  }
+
+  oscClient.on('message', onMessage);
+  try {
+    oscClient.send({ address: '/xinfo', args: [] });
+  } catch (e) {
+    clearTimeout(timeout);
+    oscClient.removeListener('message', onMessage);
+    res.json({ found: false });
+  }
+});
+
 // WebSocket handling
 wss.on('connection', (ws) => {
   console.log('Client connected');

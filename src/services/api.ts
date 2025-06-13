@@ -1,4 +1,4 @@
-import type { ChannelGroup, X32Config } from '../types/index.js';
+import type { ArduinoConfig, ChannelGroup, X32Config } from '../types/index.js';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -13,6 +13,7 @@ export class ApiService {
       throw error;
     }
   }
+
 
   static async toggleAutoSwitch(enabled: boolean, interval: number): Promise<void> {
     try {
@@ -78,4 +79,38 @@ export class ApiService {
       throw error;
     }
   }
-} 
+
+  static async getX32Status(): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/x32/status`);
+      const data = await res.json();
+      return !!data.found;
+    } catch (error) {
+      console.error('Failed to get X32 status:', error);
+      return false;
+    }
+  }
+  static async updateArduinoConfig(config: ArduinoConfig): Promise<void> {
+      try {
+        await fetch(`${API_BASE}/config/arduino`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config)
+        });
+      } catch (error) {
+        console.error('Failed to update Arduino config:', error);
+        throw error;
+      }
+    }
+
+    static async getArduinoStatus(): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE}/arduino/status`);
+        const { found } = await res.json();
+        return !!found;
+      } catch (error) {
+        console.error('Failed to get Arduino status:', error);
+        return false;
+      }
+    }
+}

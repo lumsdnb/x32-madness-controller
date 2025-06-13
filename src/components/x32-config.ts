@@ -14,14 +14,26 @@ export class X32ConfigComponent extends LitElement {
   @state()
   private localConfig: X32Config = { ...this.config };
 
+  @state()
+  private x32Found: boolean | null = null;
+
+  firstUpdated() {
+    this.checkX32Status();
+  }
+
   updated(changedProperties: Map<string, any>) {
     if (changedProperties.has('config')) {
       this.localConfig = { ...this.config };
     }
   }
 
+  private async checkX32Status() {
+    this.x32Found = await ApiService.getX32Status();
+  }
+
   private async handleUpdateConfig() {
     await ApiService.updateX32Config(this.localConfig);
+    await this.checkX32Status();
   }
 
   private handleHostChange(host: string) {
@@ -33,6 +45,12 @@ export class X32ConfigComponent extends LitElement {
   }
 
   render() {
+    const statusDot = this.x32Found === null
+      ? html`<span class="status-dot unknown"></span> <span>Checking...</span>`
+      : this.x32Found
+        ? html`<span class="status-dot found"></span> <span>X32 Found</span>`
+        : html`<span class="status-dot not-found"></span> <span>Not Found</span>`;
+
     if (this.compact) {
       return html`
         <div class="x32-config-compact">
@@ -58,6 +76,7 @@ export class X32ConfigComponent extends LitElement {
             <button @click=${this.handleUpdateConfig} class="compact-update-btn">
               Update
             </button>
+            <div class="compact-status">${statusDot}</div>
           </div>
         </div>
       `;
@@ -66,6 +85,7 @@ export class X32ConfigComponent extends LitElement {
     return html`
       <section class="x32-config">
         <h2>X32 Configuration</h2>
+        <div class="status-row">${statusDot}</div>
         <div class="config-inputs">
           <div class="input-group">
             <label>X32 IP Address:</label>
@@ -205,6 +225,33 @@ export class X32ConfigComponent extends LitElement {
     input:focus {
       outline: none;
       border-color: #646cff;
+    }
+
+    .status-row, .compact-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #888;
+      border: 1px solid #333;
+    }
+    .status-dot.found {
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e88;
+    }
+    .status-dot.not-found {
+      background: #ef4444;
+      box-shadow: 0 0 6px #ef444488;
+    }
+    .status-dot.unknown {
+      background: #888;
+      box-shadow: none;
     }
   `;
 }

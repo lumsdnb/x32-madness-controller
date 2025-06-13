@@ -4,6 +4,7 @@ export interface ChannelGroup {
   channels: number[];
 }
 
+
 export interface LinkStatus {
   enabled: boolean;
   tempo: number;
@@ -21,7 +22,12 @@ export interface AppState {
   linkStatus: LinkStatus;
 }
 
+export interface ArduinoConfig {
+  port: string;
+  baudRate: number;
+}
+
 export interface X32Config {
   host: string;
   port: number;
-} 
+}
