@@ -15,14 +15,14 @@ A web-based tool to control 4 channel groups on a Behringer X32 mixing console v
 +-------------------+        WebSocket/REST        +-------------------+
 |                   | <--------------------------> |                   |
 |   Lit/Webvis UI   |                              |   Node.js Server  |
-|  (Frontend)       |                              |                   |
-+-------------------+                              +-------------------+
-                                                        |      ^
-                                                        |      |
-                                                        v      |
-                                                +-------------------+
-                                                |   Ableton Link    |
-                                                |   OSC to X32      |
+|  (Frontend)       |               -------------> |                   |
++-------------------+               |              +-------------------+
+                                    |                   |      ^
++-------------------+ <--------------                   |      |
+|                   |                                   v      |
+| pi zero           |                           +-------------------+
+| hardware buttons  |                           |   Ableton Link    |
++-------------------+                           |   OSC to X32      |
                                                 +-------------------+
 ```
 
