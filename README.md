@@ -30,6 +30,7 @@ A web-based tool to control 4 channel groups on a Behringer X32 mixing console v
 - **Backend:** Node.js server handles OSC (to X32) and Ableton Link clock. Exposes API for frontend.
 - **OSC:** Backend sends mute/unmute commands to X32.
 - **Ableton Link:** Backend listens to clock and triggers group switching.
+**Pi Zero:** Has 2 buttons connected to the network, which send simple requests to the server
 
 ## Technology Stack
 - **Frontend:** Lit, Vite, TypeScript
@@ -176,3 +177,9 @@ If you get an error about missing `abletonlink.node` bindings:
 ---
 
 *This project uses a Node.js backend to bridge between the web UI, Ableton Link, and the X32 mixing console via OSC.*
+
+
+
+build ableton link libs:
+
+npm_config_python=python3 node-gyp rebuild --verbose

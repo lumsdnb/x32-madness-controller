@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev\"",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "install:backend": "cd backend && npm install",
-    "build:native": "cd backend && npm_config_python=python3 pnpm rebuild abletonlink"
+    "dev:frontend": "pnpm --filter x32-switcher-frontend dev",
+    "dev:backend": "pnpm --filter x32-switcher-backend dev",
+    "dev": "concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "build:frontend": "pnpm --filter x32-switcher-frontend run build",
+    "build:backend": "pnpm --filter x32-switcher-backend run build",
+    "build": "pnpm run build:frontend",
+    "preview": "pnpm --filter x32-switcher-frontend preview"
   },
   "dependencies": {
     "lit": "^3.3.0"

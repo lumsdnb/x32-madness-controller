@@ -31,10 +31,10 @@ export class X32Controller extends LitElement {
   private connected = false;
 
   @state()
-  private x32Config: X32Config = { host: '192.168.1.100', port: 10023 };
+  private x32Config: X32Config = { host: '192.168.178.20', port: 10023 };
 
   @state()
-  private arduinoConfig
+
   @state()
   private showSettings = false;
 
@@ -82,8 +82,9 @@ export class X32Controller extends LitElement {
             <div class="settings-content">
               <h3>X32 Configuration</h3>
               <x32-config .config=${this.x32Config} compact></x32-config>
-              <h3>Arduino</h3>
-              <x32-config .config=${this.x32Config} compact></x32-config>
+              <h3>Pi Zero</h3>
+              todo
+              <!-- <pi- .config=${this.x32Config} compact></x32-config> -->
 
             </div>
           </section>

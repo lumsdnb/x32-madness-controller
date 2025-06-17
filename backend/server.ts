@@ -12,7 +12,7 @@ const wss = new WebSocketServer({ server });
 // Configuration
 const config = {
   x32: {
-    host: '192.168.178.69', // Default X32 IP - should be configurable
+    host: '192.168.178.20', // Default X32 IP - should be configurable
     port: 10023
   },
   server: {
@@ -32,7 +32,7 @@ let isAutoSwitching = false;
 let switchInterval = 4; // bars
 
 // OSC Client for X32
-const oscClient = new osc.UDPPort({
+let oscClient = new osc.UDPPort({
   localAddress: '0.0.0.0',
   localPort: 57121,
   remoteAddress: config.x32.host,
@@ -151,11 +151,25 @@ app.post('/api/config/x32', (req, res) => {
   const { host, port } = req.body;
   if (host) config.x32.host = host;
   if (port) config.x32.port = port;
+  console.log(host,port,'lessgo')
 
   // Reconnect OSC client
   oscClient.close();
-  oscClient.options.remoteAddress = config.x32.host;
-  oscClient.options.remotePort = config.x32.port;
+
+  oscClient = new osc.UDPPort({
+    localAddress: '0.0.0.0',
+    localPort: 57121,
+    remoteAddress: config.x32.host,
+    remotePort: config.x32.port,
+    metadata: true
+  });
+
+  oscClient.on('ready', () => {
+    console.log('OSC Client ready, reconnected to X32');
+  });
+  oscClient.on('error', (err) => {
+    console.error('OSC Error:', err);
+  });
   oscClient.open();
 
   res.json({ success: true, config: config.x32 });

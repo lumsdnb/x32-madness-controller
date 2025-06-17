@@ -6,7 +6,7 @@ import { ApiService } from '../services/api.js';
 @customElement('x32-config')
 export class X32ConfigComponent extends LitElement {
   @property({ type: Object })
-  config: X32Config = { host: '192.168.1.100', port: 10023 };
+  config: X32Config = { host: '192.168.178.20', port: 10023 };
 
   @property({ type: Boolean })
   compact: boolean = false;
@@ -57,17 +57,17 @@ export class X32ConfigComponent extends LitElement {
           <div class="compact-inputs">
             <div class="compact-input-group">
               <label>IP:</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 .value=${this.localConfig.host}
                 @input=${(e: Event) => this.handleHostChange((e.target as HTMLInputElement).value)}
-                placeholder="192.168.1.100"
+                placeholder="192.168.178.20"
               />
             </div>
             <div class="compact-input-group">
               <label>Port:</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 .value=${this.localConfig.port.toString()}
                 @input=${(e: Event) => this.handlePortChange(parseInt((e.target as HTMLInputElement).value))}
                 placeholder="10023"
@@ -89,16 +89,16 @@ export class X32ConfigComponent extends LitElement {
         <div class="config-inputs">
           <div class="input-group">
             <label>X32 IP Address:</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               .value=${this.localConfig.host}
               @input=${(e: Event) => this.handleHostChange((e.target as HTMLInputElement).value)}
             />
           </div>
           <div class="input-group">
             <label>X32 Port:</label>
-            <input 
-              type="number" 
+            <input
+              type="number"
               .value=${this.localConfig.port.toString()}
               @input=${(e: Event) => this.handlePortChange(parseInt((e.target as HTMLInputElement).value))}
             />
@@ -260,4 +260,4 @@ declare global {
   interface HTMLElementTagNameMap {
     'x32-config': X32ConfigComponent;
   }
-} 
+}

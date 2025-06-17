@@ -1,4 +1,4 @@
-import type { ArduinoConfig, ChannelGroup, X32Config } from '../types/index.js';
+import type { ChannelGroup, X32Config } from '../types/index.js';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -55,6 +55,8 @@ export class ApiService {
 
   static async updateX32Config(config: X32Config): Promise<void> {
     try {
+      console.log('Received config:', config);
+
       await fetch(`${API_BASE}/config/x32`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
