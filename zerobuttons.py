@@ -3,10 +3,13 @@ import time
 import requests
 import json
 
+# server: 192.168.178.23
 # GPIO pin mappings
-red_button = 3
+# 3v
 red_led = 2
+red_button = 3
 blue_button = 4
+# ground
 blue_led = 17
 
 # State variables
@@ -18,7 +21,7 @@ current_group_index = 0
 NUM_GROUPS = 4
 
 # Network/API configuration
-SERVER_HOST = "192.168.1.69"    # <-- replace with your server’s IP or hostname
+SERVER_HOST = "192.168.178.21"    # <-- replace with your server’s IP or hostname
 SERVER_PORT = 3001               # matches your Node.js server port
 API_BASE_PATH = f"/api"
 
