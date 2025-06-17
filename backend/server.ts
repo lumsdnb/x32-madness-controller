@@ -12,7 +12,7 @@ const wss = new WebSocketServer({ server });
 // Configuration
 const config = {
   x32: {
-    host: '192.168.1.100', // Default X32 IP - should be configurable
+    host: '192.168.178.69', // Default X32 IP - should be configurable
     port: 10023
   },
   server: {
@@ -42,7 +42,7 @@ const oscClient = new osc.UDPPort({
 
 // Ableton Link
 const link = new abletonlink();
-link.isLinkEnable = true;
+link.enable()
 
 // Express middleware
 app.use(cors());
@@ -52,6 +52,49 @@ app.use(express.json());
 app.get('/api/groups', (req, res) => {
   res.json(channelGroups);
 });
+
+app.get('/api/x32/channels', async (req, res) => {
+  // Query each channel's mute state via OSC: send "/ch/XX/mix/on" and await a response.
+  const timeoutMs = 500;
+  const states: Record<number, number|null> = {};
+  const pending: Promise<void>[] = [];
+
+  for (let ch = 1; ch <= 32; ch++) {
+    const idx = ch;
+    pending.push(new Promise(resolve => {
+      const address = `/ch/${String(idx).padStart(2, '0')}/mix/on`;
+      let done = false;
+      function onMessage(msg: any) {
+        if (msg.address === address && Array.isArray(msg.args) && msg.args.length > 0) {
+          const val = msg.args[0].value;
+          states[idx] = (typeof val === 'number' ? val : null);
+          oscClient.removeListener('message', onMessage);
+          done = true;
+          resolve();
+        }
+      }
+      oscClient.on('message', onMessage);
+      // send query; X32 will reply with the same address plus int argument
+      try {
+        oscClient.send({ address, args: [] });
+      } catch (_) {
+        // ignore send errors
+      }
+      // after timeout, if no response, set null
+      setTimeout(() => {
+        if (!done) {
+          oscClient.removeListener('message', onMessage);
+          states[idx] = null;
+          resolve();
+        }
+      }, timeoutMs);
+    }));
+  }
+  // Await all queries
+  await Promise.all(pending);
+  res.json(states);
+});
+
 
 app.put('/api/groups/:id', (req, res) => {
   const groupId = parseInt(req.params.id);
@@ -70,22 +113,31 @@ app.get('/api/status', (req, res) => {
     activeGroup,
     isAutoSwitching,
     switchInterval,
-    linkEnabled: link.isLinkEnable,
+    linkEnabled: link.getLinkEnable(),
     linkTempo: link.bpm,
     linkBeats: link.beat
   });
 });
 
-app.post('/api/switch/:groupId', (req, res) => {
-  const groupId = parseInt(req.params.groupId);
-  console.log(`Manual switch request to group ${groupId}`);
-  if (groupId >= 0 && groupId < channelGroups.length) {
-    switchToGroup(groupId);
+app.post('/api/switch/:groupId?', (req, res) => {
+  const raw = req.params.groupId;
+  const parsed = raw !== undefined ? parseInt(raw, 10) : NaN;
+  console.log(`Manual switch request, raw param: ${raw}`);
+  let target:number;
+  if (raw === undefined || isNaN(parsed)) {
+    // no index or not a number: switch to next
+    target = (activeGroup + 1) % channelGroups.length;
+  } else {
+    target = parsed;
+  }
+  if (target >= 0 && target < channelGroups.length) {
+    switchGroup(target);
     res.json({ success: true, activeGroup });
   } else {
     res.status(400).json({ error: 'Invalid group ID' });
   }
 });
+
 
 app.post('/api/auto-switch', (req, res) => {
   const { enabled, interval } = req.body;
@@ -99,13 +151,13 @@ app.post('/api/config/x32', (req, res) => {
   const { host, port } = req.body;
   if (host) config.x32.host = host;
   if (port) config.x32.port = port;
-  
+
   // Reconnect OSC client
   oscClient.close();
   oscClient.options.remoteAddress = config.x32.host;
   oscClient.options.remotePort = config.x32.port;
   oscClient.open();
-  
+
   res.json({ success: true, config: config.x32 });
 });
 
@@ -120,11 +172,12 @@ app.post('/api/link/tempo', (req, res) => {
   }
 });
 
+
 // Test endpoint to manually trigger next group switch
 app.post('/api/test/next-group', (req, res) => {
   console.log('Test: switching to next group');
   const nextGroup = (activeGroup + 1) % channelGroups.length;
-  switchToGroup(nextGroup);
+  switchGroup(nextGroup);
   res.json({ success: true, activeGroup, nextGroup });
 });
 
@@ -159,7 +212,7 @@ app.get('/api/x32/status', async (req, res) => {
 // WebSocket handling
 wss.on('connection', (ws) => {
   console.log('Client connected');
-  
+
   // Send initial state
   ws.send(JSON.stringify({
     type: 'state',
@@ -169,7 +222,7 @@ wss.on('connection', (ws) => {
       isAutoSwitching,
       switchInterval,
       linkStatus: {
-        enabled: link.isLinkEnable,
+        enabled: link.getLinkEnable(),
         tempo: link.bpm,
         beats: link.beat,
         currentBeat: currentBeat,
@@ -178,33 +231,37 @@ wss.on('connection', (ws) => {
       }
     }
   }));
-  
+
   ws.on('close', () => {
     console.log('Client disconnected');
   });
 });
 
 // OSC Functions
-function switchToGroup(groupIndex) {
-  if (groupIndex < 0 || groupIndex >= channelGroups.length) return;
-  
-  const previousGroup = activeGroup;
-  activeGroup = groupIndex;
-  
+  function switchGroup(groupIndex:number|undefined) {
+    if (groupIndex === undefined) {
+      // no index provided: next group
+      groupIndex = (activeGroup + 1) % channelGroups.length;
+    }
+    if (typeof groupIndex !== 'number' || groupIndex < 0 || groupIndex >= channelGroups.length) return;
+    const previousGroup = activeGroup;
+    activeGroup = groupIndex;
+
+
   // Mute all channels first
   channelGroups.forEach((group, index) => {
     group.channels.forEach(channel => {
       sendMuteCommand(channel, true);
     });
   });
-  
+
   // Unmute active group channels
   channelGroups[activeGroup].channels.forEach(channel => {
     sendMuteCommand(channel, false);
   });
-  
+
   console.log(`Switched from group ${previousGroup + 1} to group ${activeGroup + 1}`);
-  
+
   // Force immediate state broadcast to ensure frontend updates
   setTimeout(() => {
     broadcastState();
@@ -213,15 +270,15 @@ function switchToGroup(groupIndex) {
 
 function sendMuteCommand(channel, mute) {
   if (!channel || channel < 1 || channel > 32) return;
-  
+
   const address = `/ch/${channel.toString().padStart(2, '0')}/mix/on`;
   const value = mute ? 0 : 1; // X32: 0 = muted, 1 = unmuted
-  
+
   oscClient.send({
     address,
     args: [{ type: 'i', value }]
   });
-  
+
   console.log(`Channel ${channel}: ${mute ? 'MUTED' : 'UNMUTED'}`);
 }
 
@@ -243,9 +300,9 @@ function broadcastState() {
       }
     }
   };
-  
+
   console.log(`Broadcasting state - activeGroup: ${activeGroup}, clients: ${wss.clients.size}`);
-  
+
   wss.clients.forEach(client => {
     if (client.readyState === 1) { // WebSocket.OPEN
       client.send(JSON.stringify(state));
@@ -274,28 +331,28 @@ oscClient.open();
 link.startUpdate(10, (beat, phase, bpm, playState) => {
   // This callback is called every 10ms with updated Link data
   const newBeat = Math.floor(beat);
-  
+
   if (newBeat !== lastBeat) {
     lastBeat = newBeat;
     currentBeat = newBeat % beatsPerBar;
     currentBar = Math.floor(newBeat / beatsPerBar);
-    
+
     // Broadcast state update for beat visualization
     broadcastState();
-    
+
     if (isAutoSwitching) {
       console.log(`Auto-switching enabled. Beat: ${newBeat}, Bar: ${currentBar}, PlayState: ${playState}`);
-      
+
       // Check if we should switch based on bar boundaries
       const barsPerSwitch = switchInterval;
       const currentBarInLoop = currentBar % barsPerSwitch;
-      
+
       // Switch at the start of each interval (when currentBarInLoop === 0 and we're on beat 0)
       // Temporarily allow switching even when playState is false for testing
       if (currentBarInLoop === 0 && currentBeat === 0) {
         console.log(`Switching to next group at bar ${currentBar} (playState: ${playState})`);
         const nextGroup = (activeGroup + 1) % channelGroups.length;
-        switchToGroup(nextGroup);
+        switchGroup(nextGroup);
       }
     }
   }
@@ -316,4 +373,4 @@ process.on('SIGINT', () => {
   link.isLinkEnable = false;
   server.close();
   process.exit(0);
-}); 
+});

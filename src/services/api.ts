@@ -3,7 +3,7 @@ import type { ArduinoConfig, ChannelGroup, X32Config } from '../types/index.js';
 const API_BASE = 'http://localhost:3001/api';
 
 export class ApiService {
-  static async switchToGroup(groupIndex: number): Promise<void> {
+  static async switchGroup(groupIndex?: number): Promise<void> {
     try {
       await fetch(`${API_BASE}/switch/${groupIndex}`, {
         method: 'POST'
@@ -13,7 +13,6 @@ export class ApiService {
       throw error;
     }
   }
-
 
   static async toggleAutoSwitch(enabled: boolean, interval: number): Promise<void> {
     try {
@@ -90,27 +89,4 @@ export class ApiService {
       return false;
     }
   }
-  static async updateArduinoConfig(config: ArduinoConfig): Promise<void> {
-      try {
-        await fetch(`${API_BASE}/config/arduino`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(config)
-        });
-      } catch (error) {
-        console.error('Failed to update Arduino config:', error);
-        throw error;
-      }
-    }
-
-    static async getArduinoStatus(): Promise<boolean> {
-      try {
-        const res = await fetch(`${API_BASE}/arduino/status`);
-        const { found } = await res.json();
-        return !!found;
-      } catch (error) {
-        console.error('Failed to get Arduino status:', error);
-        return false;
-      }
-    }
 }

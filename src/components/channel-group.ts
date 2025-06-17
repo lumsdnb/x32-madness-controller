@@ -27,7 +27,7 @@ export class ChannelGroupComponent extends LitElement {
     const channels = value.split(',')
       .map(ch => parseInt(ch.trim()))
       .filter(ch => !isNaN(ch) && ch >= 1 && ch <= 32);
-    
+
     await ApiService.updateGroup(this.group.id, { channels });
   }
 
@@ -36,20 +36,20 @@ export class ChannelGroupComponent extends LitElement {
   }
 
   private async handleSwitchClick() {
-    await ApiService.switchToGroup(this.index);
+    await ApiService.switchGroup(this.index);
   }
 
   render() {
     return html`
       <div class="group-card ${this.isActive ? 'active' : ''}">
         <div class="flex justify-between items-center mb-md">
-          <input 
-            type="text" 
+          <input
+            type="text"
             .value=${this.group.name}
             @input=${(e: Event) => this.handleGroupNameChange((e.target as HTMLInputElement).value)}
             class="input font-semibold"
           />
-          <button 
+          <button
             @click=${this.handleSwitchClick}
             class="btn ${this.isActive ? 'btn-success' : 'btn-primary'}"
           >
@@ -58,8 +58,8 @@ export class ChannelGroupComponent extends LitElement {
         </div>
         <div class="mb-sm">
           <label class="text-secondary text-base mb-xs">Channels (comma-separated):</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             .value=${this.group.channels.join(', ')}
             @input=${(e: Event) => this.handleChannelInput((e.target as HTMLInputElement).value)}
             placeholder="e.g., 1, 2, 3, 4"
@@ -97,7 +97,7 @@ export class ChannelGroupComponent extends LitElement {
         animation: active-pulse 2s ease-in-out infinite alternate;
         transform: scale(1.02);
       }
-      
+
       .group-card.active::before {
         content: '';
         position: absolute;
@@ -117,13 +117,13 @@ export class ChannelGroupComponent extends LitElement {
           box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff40, 0 0 90px #00ffff20;
         }
       }
-      
+
       @keyframes gradient-shift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
       }
-      
+
       @keyframes neon-flicker {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.8; }
@@ -142,4 +142,4 @@ declare global {
   interface HTMLElementTagNameMap {
     'channel-group': ChannelGroupComponent;
   }
-} 
+}
