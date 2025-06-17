@@ -40,7 +40,7 @@ DEFAULT_INTERVAL = 4  # e.g., 4 bars; adjust as needed
 
 # Setup
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(red_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(red_button, GPIO.IN)  # No pull_up_down needed
 GPIO.setup(blue_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(red_led, GPIO.OUT)
 GPIO.setup(blue_led, GPIO.OUT)
